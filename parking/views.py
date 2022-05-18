@@ -9,4 +9,3 @@ class parkingAPIView(viewsets.ViewSet):
         return Response({"free_spots": free_spots})
 
 # Create your views here.
-#testing branch
