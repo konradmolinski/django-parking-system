@@ -1,5 +1,6 @@
 from django.db import models
 PARKING_SPOTS = 50
+
 class Client(models.Model):
     plate_num = models.CharField(unique=True, max_length=50)
     voucher = models.DurationField()
