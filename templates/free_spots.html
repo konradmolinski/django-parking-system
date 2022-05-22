@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 id="free-spots"></h1>
+<div>
+    Available parking spots: <span id="spots"></span>
+</div>
+    <script>
+        const host =  '{{hostname}}/api/free-spots';
+        function displayData(data) {
+            document.getElementById('spots').innerHTML = data['free_spots'];
+            };
+        fetch(host)
+        .then(response=>{return response.json()})
+        .then(response=>{displayData(response)})
+        .catch(error=>{console.log('Looks like there was a problem: ', error)});
+    </script>
+{% endblock %}
