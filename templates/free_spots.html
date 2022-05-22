@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 id="free-spots"></h1>
+    <script>
+        function displayData(data) {
+            const dataHeading = document.getElementById('free-spots');
+            dataHeading.innerHTML = 'available parking spots: ' + JSON.stringify(data['free_spots']);
+            };
+        fetch('http://127.0.0.1:8000/api/free-spots')
+        .then(response=>{return response.json()})
+        .then(response=>{displayData(response)})
+        .catch(error=>{console.log('Looks like there was a problem: ', error)});
+    </script>
+{% endblock %}
