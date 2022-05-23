@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+
+<label for="platenum">Insert plate number:</label><br>
+<input type="text" id ="platenum">
+<input type="submit" value="Submit" id="submitplatenum"><br>
+
+<input id="entryButton" type="submit" value="entry button click"><br>
+<input id="escapeButton" type="submit" value="escape button click">
+
+
+<script>
+document.getElementById('submitplatenum').addEventListener('click', function(e) {
+
+    const plateNumberForm = document.getElementById('platenum').innerHTML;
+    e.preventDefault();
+
+    fetch('{{hostname}}/api/user-story', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({'Plate Number': plateNumberForm}),
+        }).then(function (response) {
+            if(response.ok){
+                console.log("SUCCESS")
+            } else {
+                console.log("Not Successful")
+            }
+        }).then(function (response) {
+            console.log(response)
+        }).then(function (response) {
+            return response.json();
+        }).catch(function (error) {
+            console.error(error);
+        })
+    });
+</script>
+{% endblock %}
