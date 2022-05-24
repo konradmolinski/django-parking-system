@@ -13,15 +13,16 @@ class ScreenAPIView(viewsets.ViewSet):
         return Response({"free_spots": free_spots})
 
 
-# class UserStoryAPIView(viewsets.ViewSet):
-#     def retrieve(self, request, pk=None):
-#         return Response()
-@api_view(['POST'])
-def UserStoryAPIView(request):
-    serializer = UserStorySerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-    return Response(serializer.data)
+class UserStoryAPIView(viewsets.ViewSet):
+    def retrieve(self, request, pk=None):
+        plate_num = request.data
+        return Response(plate_num)
+# @api_view(['POST'])
+# def UserStoryAPIView(request):
+#     serializer = UserStorySerializer(data=request.data)
+#     if serializer.is_valid():
+#         serializer.save()
+#     return Response(serializer.data)
 
 class ParkingSpotsView(TemplateView):
     template_name = "free_spots.html"

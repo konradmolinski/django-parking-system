@@ -4,6 +4,6 @@ from .views import ScreenAPIView, ParkingSpotsView, UserStoryView, UserStoryAPIV
 urlpatterns = [
     path('api/free-spots', ScreenAPIView.as_view({'get': 'retrieve'})),
     path('web/free-spots', ParkingSpotsView.as_view()),
-    path('api/user-story', UserStoryAPIView),
+    path('api/user-story', UserStoryAPIView.as_view({'post': 'retrieve'})),
     path('web/user-story', UserStoryView.as_view()),
 ]

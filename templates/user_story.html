@@ -12,10 +12,10 @@
 <script>
 document.getElementById('submitplatenum').addEventListener('click', function(e) {
 
-    const plateNumberForm = document.getElementById('platenum').innerHTML;
+    const plateNumberForm = document.getElementById('platenum').value;
     e.preventDefault();
-
-    fetch('{{hostname}}/api/user-story', {
+    const host = '{{hostname}}/api/user-story';
+    fetch(host, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -24,11 +24,13 @@ document.getElementById('submitplatenum').addEventListener('click', function(e) 
         }).then(function (response) {
             if(response.ok){
                 console.log("SUCCESS")
+                return response
             } else {
                 console.log("Not Successful")
             }
         }).then(function (response) {
             console.log(response)
+            return response
         }).then(function (response) {
             return response.json();
         }).catch(function (error) {
