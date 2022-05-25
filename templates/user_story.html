@@ -21,20 +21,30 @@ document.getElementById('submitplatenum').addEventListener('click', function(e) 
         },
         body: JSON.stringify({'plate_nr': plateNumberForm}),
         }).then(function (response) {
-            if(response.ok){
-                console.log("SUCCESS")
-                return response
-            } else {
-                console.log("Not Successful")
+            switch(response.status_code) {
+                case {{200}}:
+                    console.log("SUCCESS")
+                    .then(function (response) {
+                        console.log(response)
+                        return response
+                    }).then(function (response) {
+                        return response.json();
+                    }).catch(function (error) {
+                        console.error(error);
+                    });
+                    break;
+                case {{403}}:
+                    console.log("Not Successful")
+                    .then(function (response) {
+                        console.log(response)
+                        return response
+                    }).then(function (response) {
+                        return response.status;
+                    }).catch(function (error) {
+                        console.error(error);
+                    });
             }
-        }).then(function (response) {
-            console.log(response)
-            return response
-        }).then(function (response) {
-            return response.json();
-        }).catch(function (error) {
-            console.error(error);
-        })
+        });
     });
 </script>
 {% endblock %}

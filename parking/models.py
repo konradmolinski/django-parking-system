@@ -20,8 +20,12 @@ class ParkingEntry(models.Model):
     overtime = models.DurationField(null=True, blank=True)
     reservation_id = models.ForeignKey('Reservation', null=True, on_delete=models.SET_NULL)
 
-    def free_spots(self):
-        taken_spots = self.objects.filter(end_date__isnull=True).count()
+    def piwo(self):
+        return "piwo"
+
+    @staticmethod
+    def free_spots():
+        taken_spots = ParkingEntry.objects.filter(end_date__isnull=True).count()
         return PARKING_SPOTS - taken_spots
 
 
