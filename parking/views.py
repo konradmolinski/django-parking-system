@@ -5,24 +5,27 @@ from .models import ParkingEntry, Client
 from django.conf import settings
 
 
-class ScreenAPIView(viewsets.ViewSet):
+class FreeSpotsAPIView(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         free_spots = ParkingEntry.free_spots(ParkingEntry)
         return Response({"free_spots": free_spots})
 
 
-class UserStoryAPIView(viewsets.ViewSet):
+class TicketMachineAPIView(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         plate_num = request.data
         if ParkingEntry.free_spots(ParkingEntry):
-            entry = ParkingEntry(billing_type="ad hoc", plate_num=plate_num["Plate Number"])
+            entry = ParkingEntry(billing_type="ADH", plate_num=plate_num["plate_nr"])
             entry.save()
-        return Response(plate_num)
+            return Response({"Ticket ID":entry.id})
+        else:
+            return Response("There are no free parking spots at the moment.")
+        # return Response(plate_num)
 
-class ParkingSpotsView(TemplateView):
+class FreeSpotsView(TemplateView):
     template_name = "free_spots.html"
     extra_context = {"hostname": settings.HOSTNAME}
 
-class UserStoryView(TemplateView):
+class TicketMachineView(TemplateView):
     template_name = "user_story.html"
     extra_context = {"hostname": settings.HOSTNAME}

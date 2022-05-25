@@ -9,7 +9,12 @@ class ParkingEntry(models.Model):
 
     start_date = models.DateTimeField(auto_now_add=True)
     end_date = models.DateTimeField(null=True, blank=True)
-    billing_type = models.CharField(max_length=50)
+    billing_type_choices = [
+        ('ADH', 'AD_HOC'),
+        ('VCR', 'VOUCHER'),
+        ('SUB', 'SUBSCRIPTION'),
+    ]
+    billing_type = models.CharField(max_length=12, choices=billing_type_choices, default='ADH')
     client = models.ForeignKey(Client, null=True, on_delete=models.SET_NULL)
     plate_num = models.CharField(max_length=50)
     overtime = models.DurationField(null=True, blank=True)
