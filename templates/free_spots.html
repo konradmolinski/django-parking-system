@@ -5,7 +5,7 @@
     Available parking spots: <span id="spots"></span>
 </div>
     <script>
-        const host =  '{{hostname}}/api/free-spots';
+        const host =  '/api/free-spots';
         function displayData(data) {
             document.getElementById('spots').innerHTML = data['free_spots'];
             };

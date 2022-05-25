@@ -9,14 +9,23 @@ class ParkingEntry(models.Model):
 
     start_date = models.DateTimeField(auto_now_add=True)
     end_date = models.DateTimeField(null=True, blank=True)
-    billing_type = models.CharField(max_length=50)
+    billing_type_choices = [
+        ('ADH', 'AD_HOC'),
+        ('VCR', 'VOUCHER'),
+        ('SUB', 'SUBSCRIPTION'),
+    ]
+    billing_type = models.CharField(max_length=12, choices=billing_type_choices, default='ADH')
     client = models.ForeignKey(Client, null=True, on_delete=models.SET_NULL)
     plate_num = models.CharField(max_length=50)
     overtime = models.DurationField(null=True, blank=True)
     reservation_id = models.ForeignKey('Reservation', null=True, on_delete=models.SET_NULL)
 
-    def free_spots(self):
-        taken_spots = self.objects.filter(end_date__isnull=True).count()
+    def piwo(self):
+        return "piwo"
+
+    @staticmethod
+    def free_spots():
+        taken_spots = ParkingEntry.objects.filter(end_date__isnull=True).count()
         return PARKING_SPOTS - taken_spots
 
 
