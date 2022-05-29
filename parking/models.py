@@ -42,7 +42,6 @@ class PaymentRegister(models.Model):
     @staticmethod
     def calculate_parking_cost(start_date, end_date):
 
-        timezone = pytz.timezone("UTC")
         busy_seconds, standard_seconds, weekend_seconds = datetime.timedelta(), datetime.timedelta(), datetime.timedelta()
 
         price_list = {
@@ -60,9 +59,11 @@ class PaymentRegister(models.Model):
         }
 
         last_breakpoint = start_date
+        timezone = pytz.timezone("UTC")
 
         def append_tariff(breakpoint):
 
+            nonlocal timezone
             nonlocal last_breakpoint
             nonlocal end_date
             second = datetime.timedelta(seconds=1)
@@ -75,7 +76,6 @@ class PaymentRegister(models.Model):
                 add_time = breakpoint - last_breakpoint + second
                 last_breakpoint = breakpoint + second
 
-            last_breakpoint = timezone.localize(last_breakpoint)
             return add_time
 
         while last_breakpoint < end_date:
