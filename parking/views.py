@@ -1,11 +1,12 @@
+import datetime
+import pytz
+from django.conf import settings
 from django.views.generic import TemplateView
+from .models import ParkingEntry, PaymentRegister
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.response import Response
-from .models import ParkingEntry, PaymentRegister
-from django.conf import settings
-import datetime
-import pytz
+from parking.utils import parking_cost
 
 
 class FreeSpotsAPIView(viewsets.ViewSet):
@@ -14,11 +15,10 @@ class FreeSpotsAPIView(viewsets.ViewSet):
         return Response({"free_spots": ParkingEntry.free_spots()})
 
 
-class EnterTicketAPIView(viewsets.ViewSet):
+class GetTicketAPIView(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         plate_num = request.data
-        extra_context = {"200": status.HTTP_200_OK, "403": status.HTTP_403_FORBIDDEN}
         if ParkingEntry.free_spots():
             entry = ParkingEntry(billing_type="ADH", plate_num=plate_num["plate_nr"])
             entry.save()
@@ -32,23 +32,20 @@ class ReturnTicketAPIView(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
 
         ticket_id = request.data["ticket_id"]
-        timezone = pytz.timezone("UTC")
-        extra_context = {"200": status.HTTP_200_OK, "403": status.HTTP_403_FORBIDDEN}
+        timezone = pytz.timezone(settings.TIME_ZONE)
 
-        if ParkingEntry.objects.all().filter(id=ticket_id):
-
+        try:
             entry = ParkingEntry.objects.get(id=ticket_id)
             entry.end_date = timezone.localize(datetime.datetime.now())
             entry.save()
 
-            amount = PaymentRegister.calculate_parking_cost(entry.start_date, entry.end_date)
+            amount = parking_cost.calculate_parking_cost(entry.start_date, entry.end_date)
             payment = PaymentRegister(parking_entry_id=ticket_id, amount=amount)
             payment.save()
+
             return Response({"amount":payment.amount})
-
-        else:
-
-            return Response(ticket_id, status=status.HTTP_403_FORBIDDEN)
+        except:
+            return Response("Not found", status=status.HTTP_404_NOT_FOUND)
 
 
 class FreeSpotsView(TemplateView):

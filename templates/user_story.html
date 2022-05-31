@@ -4,12 +4,22 @@
     <script type="text/javascript" src="../static/js/user_story.js"></script>
 {% endblock %}
 {% block content %}
-    <label for="platenum">Insert plate number:</label><br>
-    <input type="text" id ="platenum">
-    <input type="submit" value="Submit" id="submitplatenum"><br>
+    <div id="platenumdiv">
+        <label for="platenum">Insert plate number:</label><br>
+        <input type="text" id ="platenum">
+        <input type="submit" value="Submit" id="submitplatenum"><br>
+    </div>
+    <div id="ticketdiv">
+        <label for="ticketid">Insert ticket ID:</label><br>
+        <input type="text" id="ticketid">
+        <input id="submitreturnticket" type="submit" value="return ticket"><br>
+    </div>
+    <div id="paymentdiv"></div>
 
-    <label for="ticketid">Insert ticket ID:</label><br>
-    <input type="text" id="ticketid">
-    <input id="submitreturnticket" type="submit" value="return ticket"><br>
+<style>
+    #submitplatenum:hover {
+    background-color: red;
+    }
+</style>
 
 {% endblock %}
