@@ -26,6 +26,20 @@ class GetTicketAPIView(viewsets.ViewSet):
         else:
             return Response(plate_num, status=status.HTTP_403_FORBIDDEN)
 
+class PayAPIView(viewsets.ViewSet):
+
+    def retrieve(self, request, pk=None):
+        data = request.data
+        try:
+            payment = PaymentRegister.objects.get(parking_entry_id=data['ticket_id'])
+            payment.status = data['payment_status']
+            payment.save()
+
+            return Response({"payment_status": payment.status})
+        except:
+            return Response("Not found", status=status.HTTP_404_NOT_FOUND)
+
+
 
 class ReturnTicketAPIView(viewsets.ViewSet):
 
@@ -43,7 +57,7 @@ class ReturnTicketAPIView(viewsets.ViewSet):
             payment = PaymentRegister(parking_entry_id=ticket_id, amount=amount)
             payment.save()
 
-            return Response({"amount":payment.amount})
+            return Response({"amount": payment.amount})
         except:
             return Response("Not found", status=status.HTTP_404_NOT_FOUND)
 

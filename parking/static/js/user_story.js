@@ -1,6 +1,5 @@
 document.getElementById('submitplatenum').addEventListener('click', function(e) {
     e.preventDefault();
-    console.log("ELO")
 
     const plateNumberForm = document.getElementById('platenum').value;
 
@@ -14,29 +13,18 @@ document.getElementById('submitplatenum').addEventListener('click', function(e) 
         },
         body: JSON.stringify({'plate_nr': plateNumberForm}),
         }).then(function (response) {
-            switch(response.status_code) {
-                case 200:
-                    console.log("SUCCESS")
-                    .then(function (response) {
-                        console.log(response)
-                        return response
-                    }).then(function (response) {
-                        return response.json();
-                    }).catch(function (error) {
-                        console.error(error);
-                    });
-                    break;
-                case 403:
-                    console.log("Not Successful")
-                    .then(function (response) {
-                        console.log(response)
-                        return response
-                    }).then(function (response) {
-                        return response.status;
-                    }).catch(function (error) {
-                        console.error(error);
-                    });
+            if (response.status != 200){
+                console.log("DUPA")
+                console.log(status)
             }
+            else {
+                console.log(response)
+                return response
+            }
+        }).then(function (response) {
+            return response.json();
+        }).catch(function (error) {
+            console.error(error);
         });
     });
 
@@ -54,14 +42,14 @@ function create_payment_div(data) {
 
     document.getElementById("paymentdiv").append(labelTag, buttonTag);
 
+    payEventListener();
 };
 
 
 document.getElementById('submitreturnticket').addEventListener('click', function(e) {
-    debugger;
     const ticketIDForm = document.getElementById('ticketid').value;
 //var x = 2;
-//                        window.x=x;
+//                    hak Wojtasa    window.x=x;
 //                        window.piwo=9;
     e.preventDefault();
 
@@ -74,28 +62,48 @@ document.getElementById('submitreturnticket').addEventListener('click', function
         },
         body: JSON.stringify({'ticket_id': ticketIDForm}),
         }).then(function (response) {
-            console.log('D*PA')
-            switch(response.status) {
-                case 200:
-                        return response.json()
-                    then(function (data) {
-                        create_payment_div(data);
-                    }).catch(function (error) {
-
-                        console.error(error);
-                    });
-                    break;
-                case 403:
-                    console.log("Not Successful")
-                    .then(function (response) {
-                        console.log(response)
-                        return response
-                    }).then(function (response) {
-                        return response.status;
-                    }).catch(function (error) {
-                        console.error(error);
-                    });
+            if (response.status != 200){
+                console.log("DUPA")
+                console.log(status)
             }
+            else {
+                console.log(response)
+                return response
+            }
+        }).then(function (response) {
+            return response.json();
+        }).then(function (data) {
+            create_payment_div(data);
+        }).catch(function (error) {
+            console.error(error);
         });
+    });
 
-});
+function payEventListener() {
+    document.getElementById('submitpayment').addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const payAPIEndpoint = '/api/pay';
+
+        fetch(payAPIEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({'payment_status': 'P', 'ticket_id': document.getElementById('ticketid').value}),
+            }).then(function (response) {
+                if (response.status != 200){
+                    console.log("DUPA")
+                    console.log(status)
+                }
+                else {
+                    console.log(response)
+                    return response
+                }
+            }).then(function (response) {
+                return response.json();
+            }).catch(function (error) {
+                console.error(error);
+            });
+        });
+    }
