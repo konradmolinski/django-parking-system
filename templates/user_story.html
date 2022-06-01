@@ -1,50 +1,23 @@
 {% extends "base.html" %}
+
+{% block js %}
+    <script type="text/javascript" src="../static/js/user_story.js"></script>
+{% endblock %}
 {% block content %}
+    <div id="platenumdiv">
+        <label for="platenum">Insert plate number:</label><br>
+        <input type="text" id ="platenum">
+        <input type="submit" value="Submit" id="submitplatenum"><br>
+    </div>
+    <div id="ticketdiv">
+        <label for="ticketid">Insert ticket ID:</label><br>
+        <input type="text" id="ticketid">
+        <input id="submitreturnticket" type="submit" value="return ticket"><br>
+    </div>
+    <br>
+    <div id="paymentdiv"></div>
 
-<label for="platenum">Insert plate number:</label><br>
-<input type="text" id ="platenum">
-<input type="submit" value="Submit" id="submitplatenum"><br>
+<style>
+</style>
 
-<input id="escapeButton" type="submit" value="escape button click">
-
-
-<script>
-document.getElementById('submitplatenum').addEventListener('click', function(e) {
-
-    const plateNumberForm = document.getElementById('platenum').value;
-    e.preventDefault();
-    const host = '/api/ticket-machine';
-    fetch(host, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({'plate_nr': plateNumberForm}),
-        }).then(function (response) {
-            switch(response.status_code) {
-                case {{200}}:
-                    console.log("SUCCESS")
-                    .then(function (response) {
-                        console.log(response)
-                        return response
-                    }).then(function (response) {
-                        return response.json();
-                    }).catch(function (error) {
-                        console.error(error);
-                    });
-                    break;
-                case {{403}}:
-                    console.log("Not Successful")
-                    .then(function (response) {
-                        console.log(response)
-                        return response
-                    }).then(function (response) {
-                        return response.status;
-                    }).catch(function (error) {
-                        console.error(error);
-                    });
-            }
-        });
-    });
-</script>
 {% endblock %}

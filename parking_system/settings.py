@@ -131,9 +131,27 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATICFILES_DIRS = (BASE_DIR / "parking/static",)
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 HOSTNAME = 'http://localhost:8000'
+
+PARKING_SPOTS = 50
+
+PRICE_LIST = {
+    'busy': {
+        'hours': (range(7, 10), range(15, 18)),
+        'price': 10,
+    },
+    'standard': {
+        'hours': (range(0, 7), range(10, 15), range(18, 24)),
+        'price': 5,
+    },
+    'weekend': {
+        'price': 7,
+    }
+}
