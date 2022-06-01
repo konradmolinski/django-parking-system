@@ -7,15 +7,17 @@ class Client(models.Model):
     plate_num = models.CharField(unique=True, max_length=50)
     voucher = models.DurationField()
 
+
+
+billing_type_choices = [
+    ('ADH', 'AD_HOC'),
+    ('VCR', 'VOUCHER'),
+    ('SUB', 'SUBSCRIPTION'),
+]
 class ParkingEntry(models.Model):
 
     start_date = models.DateTimeField(auto_now_add=True)
     end_date = models.DateTimeField(null=True, blank=True)
-    billing_type_choices = [
-        ('ADH', 'AD_HOC'),
-        ('VCR', 'VOUCHER'),
-        ('SUB', 'SUBSCRIPTION'),
-    ]
     billing_type = models.CharField(max_length=3, choices=billing_type_choices, default='ADH')
     client = models.ForeignKey(Client, null=True, on_delete=models.SET_NULL)
     plate_num = models.CharField(max_length=50)
@@ -27,15 +29,17 @@ class ParkingEntry(models.Model):
         taken_spots = ParkingEntry.objects.filter(end_date__isnull=True).count()
         return settings.PARKING_SPOTS - taken_spots
 
+
+
+payment_status_choices = [
+    ('P', 'PAID'),
+    ('U', 'UNPAID'),
+]
 class PaymentRegister(models.Model):
 
     payment_date = models.DateTimeField(auto_now_add=True)
     parking_entry_id = models.IntegerField()
     amount = models.IntegerField()
-    payment_status_choices = [
-        ('P', 'PAID'),
-        ('U', 'UNPAID'),
-    ]
     status = models.CharField(max_length=1, choices=payment_status_choices, default='U')
 
 class Reservation(models.Model):

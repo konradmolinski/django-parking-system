@@ -14,7 +14,6 @@ document.getElementById('submitplatenum').addEventListener('click', function(e) 
         body: JSON.stringify({'plate_nr': plateNumberForm}),
         }).then(function (response) {
             if (response.status != 200){
-                console.log("DUPA")
                 console.log(status)
             }
             else {
@@ -48,9 +47,7 @@ function create_payment_div(data) {
 
 document.getElementById('submitreturnticket').addEventListener('click', function(e) {
     const ticketIDForm = document.getElementById('ticketid').value;
-//var x = 2;
-//                    hak Wojtasa    window.x=x;
-//                        window.piwo=9;
+
     e.preventDefault();
 
     const returnTicketAPIEndpoint = '/api/return-ticket';
@@ -63,7 +60,6 @@ document.getElementById('submitreturnticket').addEventListener('click', function
         body: JSON.stringify({'ticket_id': ticketIDForm}),
         }).then(function (response) {
             if (response.status != 200){
-                console.log("DUPA")
                 console.log(status)
             }
             else {
@@ -93,7 +89,6 @@ function payEventListener() {
             body: JSON.stringify({'payment_status': 'P', 'ticket_id': document.getElementById('ticketid').value}),
             }).then(function (response) {
                 if (response.status != 200){
-                    console.log("DUPA")
                     console.log(status)
                 }
                 else {
