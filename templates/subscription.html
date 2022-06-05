@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+{% block js %}
+
+    <script type="text/javascript" src="{% static 'js/subscription.js' %}"></script>
+{{STATIC_URL}}
+{% endblock %}
+{% block content %}
+<div id="createsubform">
+    <label for="platenum">Insert your plate number:</label><br>
+    <input type="text" id="platenum"><br>
+    <label for="substartdate">Start date:</label><br>
+    <input type="date" id="substartdate" min="{{datenow}}" value="{{datenow}}"><br>
+    <label for="subenddate">End date:</label><br>
+    <input type="date" id="subenddate" min="{{datenow}}" value="{{datenow}}" max="{{maxdate}}"><br>
+    <input id="submitbutton" type="submit" value="Submit" onclick="create_payment_div()"><br>
+</div><br>
+<div id="paymentdiv" style="display:none">
+    <label id='amountinfo' for="submitpayment">Amount to pay: <span id="amountToPayInfo"></span></label><br>
+    <input type="submit" id="submitpayment" value="Pay"><br>
+</div>
+
+{% endblock %}

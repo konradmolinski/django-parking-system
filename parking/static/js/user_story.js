@@ -29,19 +29,11 @@ document.getElementById('submitplatenum').addEventListener('click', function(e) 
 
 function create_payment_div(data) {
 
-    let labelTag = document.createElement("label");
-    let buttonTag = document.createElement("input");
-
-    labelTag.setAttribute("for", "submitpayment");
-    buttonTag.setAttribute("id", "submitpayment");
-    buttonTag.setAttribute("type", "submit");
-    buttonTag.setAttribute("value", "Pay");
-
-    labelTag.innerHTML = 'Amount to pay: ' + data["amount"].toString();
-
-    document.getElementById("paymentdiv").append(labelTag, buttonTag);
-
+    amount = data['amount'].toString();
+    document.getElementById('paymentdiv').style.display = "block";
+    document.getElementById('amountinfo').innerHTML += amount;
     payEventListener();
+
 };
 
 
@@ -59,19 +51,25 @@ document.getElementById('submitreturnticket').addEventListener('click', function
         },
         body: JSON.stringify({'ticket_id': ticketIDForm}),
         }).then(function (response) {
-            if (response.status != 200){
-                console.log(status)
+            json = response.json();
+            return [response.json(), response.status];
+        }).then(function (resp_and_status) {
+            data = resp_and_status[0];
+            status=resp_and_status[1];
+            if (status !== 200){
+                document.getElementById("message").innerHTML=data.error_msg;
+                return;
             }
-            else {
-                console.log(response)
-                return response
+            console.log(data['amount']);
+            if (data['amount'] > 0){
+                create_payment_div(data);
             }
-        }).then(function (response) {
-            return response.json();
-        }).then(function (data) {
-            create_payment_div(data);
+            else{
+            document.getElementById("message").innerHTML="Nothing to pay";
+            }
         }).catch(function (error) {
             console.error(error);
+            document.getElementById("message").innerHTML=error;
         });
     });
 

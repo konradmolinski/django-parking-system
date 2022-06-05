@@ -5,7 +5,7 @@ from django.conf import settings
 
 class Client(models.Model):
     plate_num = models.CharField(unique=True, max_length=50)
-    voucher = models.DurationField()
+    voucher = models.DurationField(null=True, blank=True)
 
 
 
@@ -26,8 +26,10 @@ class ParkingEntry(models.Model):
 
     @staticmethod
     def free_spots():
+        timezone = pytz.timezone(settings.TIME_ZONE)
         taken_spots = ParkingEntry.objects.filter(end_date__isnull=True).count()
-        return settings.PARKING_SPOTS - taken_spots
+        sub_spots = Subscription.objects.filter(end_date__gt=timezone.localize(datetime.datetime.now())).count()
+        return settings.PARKING_SPOTS - taken_spots - sub_spots
 
 
 
@@ -38,7 +40,7 @@ payment_status_choices = [
 class PaymentRegister(models.Model):
 
     payment_date = models.DateTimeField(auto_now_add=True)
-    parking_entry_id = models.IntegerField()
+    parking_entry_id = models.IntegerField(null=True, blank=True)
     amount = models.IntegerField()
     status = models.CharField(max_length=1, choices=payment_status_choices, default='U')
 
@@ -51,9 +53,8 @@ class Reservation(models.Model):
 class Subscription(models.Model):
 
     client_id = models.ForeignKey(Client, on_delete=models.CASCADE)
-    start_date = models.DateTimeField(auto_now_add=True)
+    start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     payment_id = models.ForeignKey(PaymentRegister, on_delete=models.CASCADE)
-    parking_spot = models.IntegerField()
 
 
