@@ -1,13 +1,24 @@
 function create_payment_div(data) {
-
     amount = data['amount'].toString();
     document.getElementById('paymentdiv').style.display = "block";
     document.getElementById('amountToPayInfo').innerHTML = amount;
+};
 
-//    payEventListener();
+function create_error_div(error_msg) {
+    document.getElementById('errordiv').style.display = "block";
+    document.getElementById('errormsg').innerHTML = error_msg;
+};
 
-    };
-
+const getSubscriptionInfoAPIEndpoint = '/api/sub-info';
+fetch(getSubscriptionInfoAPIEndpoint)
+.then(response=>{return response.json()})
+.then(function (response) {
+    if (response["available_subscriptions"] <= 0) {
+        document.getElementById('substartdate').disabled = true;
+        document.getElementById('subenddate').disabled = true;
+        document.getElementById('platenum').disabled = true;
+        create_error_div('No available subscriptions at the moment.')
+    }}).catch(error=>{console.log('Looks like there was a problem: ', error)});
 
 document.getElementById('submitbutton').addEventListener('click', function(e) {
     e.preventDefault();
@@ -41,60 +52,56 @@ document.getElementById('submitbutton').addEventListener('click', function(e) {
         });
     });
 
-    document.getElementById('submitpayment').addEventListener('click', function(e) {
-        e.preventDefault();
+document.getElementById('submitpayment').addEventListener('click', function(e) {
+    e.preventDefault();
 
-        const plateNum = document.getElementById('platenum').value;
-        const startDate = document.getElementById('substartdate').value;
-        const endDate = document.getElementById('subenddate').value;
+    const plateNum = document.getElementById('platenum').value;
+    const startDate = document.getElementById('substartdate').value;
+    const endDate = document.getElementById('subenddate').value;
 
-        const payAPIEndpoint = '/api/pay-sub';
+    const payAPIEndpoint = '/api/pay-sub';
 
-        fetch(payAPIEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({'start_date': startDate, 'end_date': endDate, 'plate_nr': plateNum}),
-            }).then(function (response) {
-                if (response.status != 200){
-                    console.log(status)
-                    return response;
-                }
-                else {
-                    console.log(response)
-                    return response.json();
-                }
-            }).catch(function (error) {
-                console.error(error);
-            });
+    fetch(payAPIEndpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({'start_date': startDate, 'end_date': endDate, 'plate_nr': plateNum}),
+        }).then(function (response) {
+            if (response.status != 200){
+                console.log(status)
+                return response;
+            }
+            else {
+                console.log(response)
+                return response.json();
+            }
+        }).catch(function (error) {
+            console.error(error);
         });
+    });
 
 
 document.getElementById('substartdate').addEventListener('change', function(e) {
 
+    const getSubscriptionInfoAPIEndpoint = '/api/sub-info';
     const endDate = document.getElementById('subenddate');
     endDate.min = e.target.value;
     endDate.value = e.target.value;
-
     let d = new Date(e.target.value);
-    d = new Date(d.getTime() + 1000*3600*24*28);
 
-    let value = String(d.getFullYear());
-    const month = d.getMonth() + 1;
-    const day = d.getDate() + 1;
+    fetch(getSubscriptionInfoAPIEndpoint)
+    .then(response=>{return response.json()})
+    .then(function (response) {
+        if (response['max_subscription_time'] < 28) {
+            d = new Date(d.getTime() + 1000*3600*24*response['max_subscription_time']);
+        }
+        else {
+            d = new Date(d.getTime() + 1000*3600*24*28);
+        }
+    })
 
-    if (month >= 10) {
-        value += "-" + String(month);
-    } else {
-        value += "-0" + String(month);
-    }
-    if (day >= 10) {
-        value += "-" + String(day);
-    } else {
-        value += "-0" + String(day);
-    }
-
+    let value = d.toISOString().slice(0,10);
     endDate.setAttribute('max', value);
 
-});
+    });

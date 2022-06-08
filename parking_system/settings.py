@@ -42,9 +42,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
 
-    #local
-    'parking.apps.ParkingConfig',
-
+    # local
+    # 'parking.apps.ParkingConfig',
+    'parking'
 ]
 
 MIDDLEWARE = [

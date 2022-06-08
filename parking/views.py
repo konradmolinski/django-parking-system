@@ -1,14 +1,12 @@
 import datetime
 import pytz
 from django.conf import settings
-from django.db.models import Q
 from django.views.generic import TemplateView
 from .models import ParkingEntry, PaymentRegister, Client, Subscription
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.response import Response
-from parking.utils import parking_cost, sub_cost, check_payment
-
+from parking.utils import parking_cost, sub_cost
 
 
 class FreeSpotsAPIView(viewsets.ViewSet):
@@ -16,6 +14,13 @@ class FreeSpotsAPIView(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         return Response({"free_spots": ParkingEntry.free_spots()})
 
+class SubscriptionsInfoAPIView(viewsets.ViewSet):
+
+    def retrieve(self, request, pk=None):
+        timezone = pytz.timezone(settings.TIME_ZONE)
+        now = timezone.localize(datetime.datetime.now())
+        return Response({"available_subscriptions": Subscription.subscriptions_available(),
+                         "max_subscription_time": Subscription.max_possible_subscription()}) #max_subscription_time.days doesnt include current day.
 
 class GetTicketAPIView(viewsets.ViewSet):
 
@@ -52,14 +57,15 @@ class PayAPIView(viewsets.ViewSet):
         except:
             return Response("Not found", status=status.HTTP_404_NOT_FOUND)
 
-
-
 class ReturnTicketAPIView(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
 
-        ticket_id = request.data["ticket_id"]
         timezone = pytz.timezone(settings.TIME_ZONE)
+
+        ticket_id = request.data["ticket_id"]
+        if not isinstance(ticket_id, int):
+            return Response({"error_msg": "Ticket ID is supposed to be a number."})
 
         try:
             parking_entry = ParkingEntry.objects.get(id=ticket_id)
@@ -70,7 +76,6 @@ class ReturnTicketAPIView(viewsets.ViewSet):
 
         parking_entry.end_date = timezone.localize(datetime.datetime.now())
         parking_entry.save()
-
 
         if parking_entry.billing_type == 'SUB':
 
@@ -106,7 +111,6 @@ class ReturnTicketAPIView(viewsets.ViewSet):
 
             return Response({"amount": payment.amount})
 
-
 class SubscriptionAPIView(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
@@ -115,32 +119,35 @@ class SubscriptionAPIView(viewsets.ViewSet):
         start_date = timezone.localize(datetime.datetime.strptime(data['start_date'], '%Y-%m-%d'))
         end_date = timezone.localize(datetime.datetime.strptime(data['end_date'], '%Y-%m-%d'))
 
-        client, client_created = Client.objects.get_or_create(plate_num=data['plate_nr'])
-
-        if not check_payment.client_has_subscription_in_requested_range(client, start_date, end_date):
+        client = Client.objects.filter(plate_num=data['plate_nr'])
+        if (client.exists()) and not Client.has_subscription_in_range(client, start_date, end_date):
             return Response({"error_msg": "Already Paid"}, status=400)
 
         else:
-
-            amount = sub_cost.calculate_sub_cost(start_date, end_date)
+            amount = sub_cost.get_subscription_cost(start_date, end_date)
             return Response({"amount": amount})
 
 class SubPayAPIView(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
-        # jesli user juz zaplacil, nie pozwalaj mu, zwroc error 400 - already paid
         timezone = pytz.timezone(settings.TIME_ZONE)
         data = request.data
-
         start_date = timezone.localize(datetime.datetime.strptime(data['start_date'], '%Y-%m-%d'))
         end_date = timezone.localize(datetime.datetime.strptime(data['end_date'], '%Y-%m-%d'))
-        client = Client.objects.get(plate_num=data['plate_nr'])
+        client, created = Client.objects.get_or_create(plate_num=data['plate_nr'])
 
-        if not check_payment.client_has_subscription_in_requested_range(client, start_date, end_date):
+        if Subscription.subscriptions_available() <= 0:
+            return Response({"error_msg": "No available subscriptions at the moment."}, status=400)
+
+        elif Subscription.max_possible_subscription() < (end_date - start_date).days:
+            return Response({"error_msg": f"Required subscription range is too big. Currently longest available subscription"
+                                          f" is {Subscription.max_possible_subscription()} days long."}, status=400)
+
+        elif not Client.has_subscription_in_range(client, start_date, end_date):
             return Response({"error_msg": "Already Paid"}, status=400)
 
         else:
-            amount = sub_cost.calculate_sub_cost(start_date, end_date)
+            amount = sub_cost.get_subscription_cost(start_date, end_date)
 
             payment = PaymentRegister(amount=amount, status='P')
             payment.save()
@@ -165,6 +172,9 @@ class TicketMachineView(TemplateView):
 class SubscriptionView(TemplateView):
 
     template_name = "subscription.html"
-    extra_context = {"hostname": settings.HOSTNAME, "datenow": str(datetime.datetime.now().date()),
-                     "maxdate": str(datetime.datetime.now().date() + datetime.timedelta(days=28))}
+    extra_context = {"hostname": settings.HOSTNAME,
+                     "datenow": str(datetime.datetime.now().date()),
+                     "maxdate": str(datetime.datetime.now().date() + datetime.timedelta(days=28)),
+                     }
+
 

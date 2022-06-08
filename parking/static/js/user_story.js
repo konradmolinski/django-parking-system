@@ -52,7 +52,7 @@ document.getElementById('submitreturnticket').addEventListener('click', function
         body: JSON.stringify({'ticket_id': ticketIDForm}),
         }).then(function (response) {
             json = response.json();
-            return [response.json(), response.status];
+            return [json, response.status];
         }).then(function (resp_and_status) {
             data = resp_and_status[0];
             status=resp_and_status[1];
