@@ -46,8 +46,12 @@ class ParkingEntry(models.Model):
     @staticmethod
     def free_spots():
         timezone = pytz.timezone(settings.TIME_ZONE)
+        now = timezone.localize(datetime.datetime.now())
         taken_spots = ParkingEntry.objects.filter(end_date__isnull=True).count()
-        sub_spots = Subscription.objects.filter(end_date__gt=timezone.localize(datetime.datetime.now())).count()
+        sub_spots = Subscription.objects.filter(
+            Q(end_date__gt=now),
+            Q(start_date__lte=now)
+        ).count()
         return settings.PARKING_SPOTS - taken_spots - sub_spots
 
 
@@ -87,10 +91,10 @@ class Subscription(models.Model):
         return int(settings.PARKING_SPOTS * 0.9 - active_subscriptions)
 
     @staticmethod
-    def max_possible_subscription():
+    def max_possible_subscription_time():
         timezone = pytz.timezone(settings.TIME_ZONE)
         now = timezone.localize(datetime.datetime.now())
-        if Subscription.objects.filter(start_date__gt=now).count() > settings.PARKING_SPOTS * 0.9:
+        if Subscription.objects.filter(start_date__gt=now).count() >= settings.PARKING_SPOTS * 0.9:
             try:
                 closest_upcoming_subscription = Subscription.objects.filter(start_date__gt=now)\
                     .aggregate(Max('start_date'))
@@ -99,5 +103,5 @@ class Subscription(models.Model):
                 max_subscription_time = datetime.timedelta(days=28)
         else:
             max_subscription_time = datetime.timedelta(days=28)
-        return int(max_subscription_time)
+        return max_subscription_time.days
 

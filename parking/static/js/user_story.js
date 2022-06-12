@@ -56,11 +56,10 @@ document.getElementById('submitreturnticket').addEventListener('click', function
         }).then(function (resp_and_status) {
             data = resp_and_status[0];
             status=resp_and_status[1];
-            if (status !== 200){
+            if (status != 200){
                 document.getElementById("message").innerHTML=data.error_msg;
                 return;
             }
-            console.log(data['amount']);
             if (data['amount'] > 0){
                 create_payment_div(data);
             }

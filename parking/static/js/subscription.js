@@ -81,7 +81,6 @@ document.getElementById('submitpayment').addEventListener('click', function(e) {
         });
     });
 
-
 document.getElementById('substartdate').addEventListener('change', function(e) {
 
     const getSubscriptionInfoAPIEndpoint = '/api/sub-info';
