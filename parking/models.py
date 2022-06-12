@@ -47,7 +47,7 @@ class ParkingEntry(models.Model):
     def free_spots():
         timezone = pytz.timezone(settings.TIME_ZONE)
         now = timezone.localize(datetime.datetime.now())
-        taken_spots = ParkingEntry.objects.filter(end_date__isnull=True).count()
+        taken_spots = ParkingEntry.objects.filter(end_date__isnull=True, billing_type="ADH").count()
         sub_spots = Subscription.objects.filter(
             Q(end_date__gt=now),
             Q(start_date__lte=now)
