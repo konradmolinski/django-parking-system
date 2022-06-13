@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (FreeSpotsAPIView, FreeSpotsView, TicketMachineView, GetTicketAPIView, ReturnTicketAPIView,\
-    PayAPIView, SubscriptionView, SubscriptionAPIView, SubPayAPIView, SubscriptionsInfoAPIView)
+    PayAPIView, SubscriptionView, SubscriptionAPIView, SubPayAPIView, SubscriptionsInfoAPIView, VoucherView,
+                    VoucherAPIView, VoucherPayAPIView)
 
 urlpatterns = [
     path('api/free-spots', FreeSpotsAPIView.as_view({'get': 'retrieve'})),
@@ -10,8 +11,12 @@ urlpatterns = [
     path('api/pay', PayAPIView.as_view({'post': 'retrieve'})),
     path('api/subscription', SubscriptionAPIView.as_view({'post': 'retrieve'})),
     path('api/pay-sub', SubPayAPIView.as_view({'post': 'retrieve'})),
+    path('api/voucher', VoucherAPIView.as_view({'post': 'retrieve'})),
+    path('api/pay-voucher', VoucherPayAPIView.as_view({'post': 'retrieve'})),
+
 
     path('web/free-spots', FreeSpotsView.as_view()),
     path('web/ticket-machine', TicketMachineView.as_view()),
     path('web/subscription', SubscriptionView.as_view()),
+    path('web/voucher', VoucherView.as_view()),
 ]

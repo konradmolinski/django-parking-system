@@ -44,7 +44,7 @@ INSTALLED_APPS = [
 
     # local
     # 'parking.apps.ParkingConfig',
-    'parking'
+    'parking',
 ]
 
 MIDDLEWARE = [

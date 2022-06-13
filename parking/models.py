@@ -7,7 +7,7 @@ from django.db.models import Max
 
 class Client(models.Model):
     plate_num = models.CharField(unique=True, max_length=50)
-    voucher = models.DurationField(null=True, blank=True)
+    voucher = models.DurationField(default=datetime.timedelta(seconds=0))
 
     def has_subscription_in_range(self, start_date, end_date):
         pre_date_query = Subscription.objects.filter(

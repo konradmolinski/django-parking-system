@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+{% block js %}
+
+    <script type="text/javascript" src="{% static 'js/voucher.js' %}"></script>
+{{STATIC_URL}}
+{% endblock %}
+{% block content %}
+<div id="createvoucherform">
+    <label for="platenum">Insert your plate number:</label><br>
+    <input type="text" id="platenum"><br>
+    <label for="voucherhours">Insert number of hours for your voucher:</label><br>
+    <input type="text" id="voucherhours"><br>
+    <input id="submitbutton" type="submit" value="Submit" onclick="create_payment_div()"><br>
+</div><br>
+<div id="paymentdiv" style="display:none">
+    <label id='amountinfo' for="submitpayment">Amount to pay: <span id="amountToPayInfo"></span></label><br>
+    <input type="submit" id="submitpayment" value="Pay"><br>
+</div>
+<div id="errordiv" style="display:none">
+    <p id="errormsg"></p>
+</div>
+
+{% endblock content %}

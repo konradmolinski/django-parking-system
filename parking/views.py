@@ -7,7 +7,7 @@ from .models import ParkingEntry, PaymentRegister, Client, Subscription
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.response import Response
-from .utils import parking_cost, sub_cost
+from .utils import parking_cost, sub_cost, voucher_cost
 from .models import payment_status_choices
 
 
@@ -20,7 +20,6 @@ class SubscriptionsInfoAPIView(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         timezone = pytz.timezone(settings.TIME_ZONE)
-        now = timezone.localize(datetime.datetime.now())
         return Response({"available_subscriptions": Subscription.subscriptions_available(),
                          "max_subscription_time": Subscription.max_possible_subscription_time()}) #max_subscription_time.days doesnt include current day.
 
@@ -40,18 +39,22 @@ class GetTicketAPIView(viewsets.ViewSet):
 
         client, created = Client.objects.get_or_create(plate_num=plate_num)
 
-        try:
-            Subscription.objects.get(client_id=client)
+        if Subscription.objects.filter(client_id=client).exists():
             entry = ParkingEntry(billing_type="SUB", plate_num=plate_num, client=client)
             entry.save()
             return Response({"ticket_id": entry.id})
-        except:
-            if ParkingEntry.free_spots():
-                entry = ParkingEntry(billing_type="ADH", plate_num=plate_num, client=client)
-                entry.save()
-                return Response({"ticket_id": entry.id})
-            else:
-                return Response({"error_msg": "No available parking spots at the moment."}, status=status.HTTP_403_FORBIDDEN)
+
+        elif client.voucher > datetime.timedelta(seconds=0):
+            entry = ParkingEntry(billing_type="VCR", plate_num=plate_num, client=client)
+            entry.save()
+            return Response({"ticket_id": entry.id})
+
+        if ParkingEntry.free_spots():
+            entry = ParkingEntry(billing_type="ADH", plate_num=plate_num, client=client)
+            entry.save()
+            return Response({"ticket_id": entry.id})
+        else:
+            return Response({"error_msg": "No available parking spots at the moment."}, status=status.HTTP_403_FORBIDDEN)
 
 class PayAPIView(viewsets.ViewSet):
 
@@ -120,6 +123,30 @@ class ReturnTicketAPIView(viewsets.ViewSet):
 
             else:
                 return Response({"amount": 0})
+
+        elif parking_entry.billing_type == 'VCR':
+
+            parking_time = parking_entry.end_date - parking_entry.start_date
+
+            if parking_time > parking_entry.client.voucher:
+
+                parking_entry.overtime = parking_time - parking_entry.client.voucher
+                parking_entry.voucher = datetime.timedelta(seconds=0)
+
+                amount = parking_cost.calculate_parking_cost(parking_entry.start_date + parking_entry.overtime,
+                                                             parking_entry.end_date)
+                payment = PaymentRegister(parking_entry_id=ticket_id, amount=amount)
+
+                parking_entry.save()
+                payment.save()
+
+                return Response({"amount": payment.amount, "voucher_time_left": parking_entry.voucher})
+
+            else:
+                parking_entry.voucher -= parking_time
+                parking_entry.save()
+
+                return Response({"amount": 0, "voucher_time_left": parking_entry.voucher})
 
         else:
             amount = parking_cost.calculate_parking_cost(parking_entry.start_date, parking_entry.end_date)
@@ -209,6 +236,52 @@ class SubPayAPIView(viewsets.ViewSet):
 
         return Response({"payment_status": payment.status})
 
+class VoucherAPIView(viewsets.ViewSet):
+
+    def retrieve(self, request, pk=None):
+
+        data = request.data
+        plate_num = data["plate_nr"]
+        plate_num_max_length = ParkingEntry._meta.get_field('plate_num').max_length
+
+        if not plate_num:
+            return Response({"error_msg": "Plate number cannot be empty string."}, status=400)
+        if len(plate_num) > plate_num_max_length:
+            return Response({"error_msg": f"Plate number cannot be longer then {plate_num_max_length} chars."}, status=400)
+
+        voucher_hours = data["voucher_hours"]
+
+        if not voucher_hours.isnumeric():
+            return Response({"error_msg": "The voucher hours value must be numeric."}, status=400)
+
+        amount = voucher_cost.get_voucher_cost(int(voucher_hours))
+
+        return Response({"amount": amount})
+
+class VoucherPayAPIView(viewsets.ViewSet):
+
+    def retrieve(self, request, pk=None):
+
+        data = request.data
+        plate_num = data["plate_nr"]
+        plate_num_max_length = ParkingEntry._meta.get_field('plate_num').max_length
+
+        if not plate_num:
+            return Response({"error_msg": "Plate number cannot be empty string."}, status=400)
+        if len(plate_num) > plate_num_max_length:
+            return Response({"error_msg": f"Plate number cannot be longer then {plate_num_max_length} chars."}, status=400)
+
+        voucher_hours = data["voucher_hours"]
+
+        if not voucher_hours.isnumeric():
+            return Response({"error_msg": "The voucher hours value must be numeric."}, status=400)
+
+        client, create = Client.objects.get_or_create(plate_num=plate_num)
+        client.voucher += datetime.timedelta(hours=int(voucher_hours))
+        client.save()
+
+        return Response({"current_voucher_amount": client.voucher})
+
 class FreeSpotsView(TemplateView):
 
     template_name = "free_spots.html"
@@ -226,5 +299,10 @@ class SubscriptionView(TemplateView):
                      "datenow": str(datetime.datetime.now().date()),
                      "maxdate": str(datetime.datetime.now().date() + datetime.timedelta(days=28)),
                      }
+
+class VoucherView(TemplateView):
+
+    template_name = "voucher.html"
+    extra_context = {"hostname": settings.HOSTNAME}
 
 

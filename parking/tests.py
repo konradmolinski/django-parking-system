@@ -71,6 +71,10 @@ class PlateNumberLengthTestCases(TestCase):
         response = client.post(url="http://localhost:8000/api/subscription", json={"plate_nr": ""}, headers=headers)
         self.assertEqual(response.status_code, 400)
 
+        headers = {'Content-type': 'application/json'}
+        response = client.post(url="http://localhost:8000/api/voucher", json={"plate_nr": ""}, headers=headers)
+        self.assertEqual(response.status_code, 400)
+
 
     def test_various_plate_num_length(self):
 
@@ -85,6 +89,11 @@ class PlateNumberLengthTestCases(TestCase):
 
         plate_num = "".join(random.choice(letters) for i in range(max_length + 1))
         response = client.post(url="http://localhost:8000/api/subscription", json={"plate_nr": plate_num},
+                               headers=headers)
+        self.assertEqual(response.status_code, 400)
+
+        plate_num = "".join(random.choice(letters) for i in range(max_length + 1))
+        response = client.post(url="http://localhost:8000/api/voucher", json={"plate_nr": plate_num},
                                headers=headers)
         self.assertEqual(response.status_code, 400)
 
@@ -506,3 +515,55 @@ class SubscriptionWrongDateInputTestCases(TestCase):
 
         response = client.post(url="http://localhost:8000/api/pay-sub", json=data, headers=headers)
         self.assertEqual(response.status_code, 400)
+
+class VoucherHoursAmountWrongDateInputTestCase(TestCase):
+
+    def test_nonnumeric_hours_amount_value(self):
+        headers = {'Content-type': 'application/json'}
+        data = {
+            "voucher_hours": "".join(random.choice(string.ascii_letters)),
+            "plate_nr": "abc123",
+        }
+        response = client.post(url="http://localhost:8000/api/voucher",
+                               json=data,
+                               headers=headers)
+        self.assertEqual(response.status_code, 400)
+
+class ClientVoucherAmountTestCase(TestCase):
+
+    def test_client_voucher_transaction(self):
+        headers = {'Content-type': 'application/json'}
+        data = {
+            "voucher_hours": "50",
+            "plate_nr": "abc123",
+        }
+        response = client.post(url="http://localhost:8000/api/pay-voucher",
+                               json=data,
+                               headers=headers)
+
+        self.assertEqual(float(response.json()['current_voucher_amount']), 3600*50)
+
+        response = client.post(url="http://localhost:8000/api/pay-voucher",
+                               json=data,
+                               headers=headers)
+
+        self.assertEqual(float(response.json()['current_voucher_amount']), 3600*50*2)
+
+    def create_client_with_parking_entry(self, plate_nr=random.randint(1, 1000)):
+        client = Client(plate_num=f"plateno{plate_nr}", voucher=timedelta(seconds=3600))
+        parking_entry = ParkingEntry(start_date=(datetime.now() - timedelta(seconds=600)), billing_type='VCR',
+                                     client=client, plate_num=client.plate_num)
+        client.save()
+        parking_entry.save()
+        return parking_entry
+
+    def setUp(self):
+        self.parking_entry = self.create_client_with_parking_entry()
+
+    def test_client_voucher_amount_after_parking_escape(self):
+        headers = {'Content-type': 'application/json'}
+        response = client.post(url="http://localhost:8000/api/return-ticket",
+                               json={"ticket_id": self.parking_entry.id}, headers=headers)
+        self.assertEqual(float(response.json()['voucher_time_left']), 3000)
+
+

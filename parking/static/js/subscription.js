@@ -94,13 +94,13 @@ document.getElementById('substartdate').addEventListener('change', function(e) {
     .then(function (response) {
         if (response['max_subscription_time'] < 28) {
             d = new Date(d.getTime() + 1000*3600*24*response['max_subscription_time']);
+            let value = d.toISOString().slice(0,10);
+            endDate.setAttribute('max', value);
         }
         else {
             d = new Date(d.getTime() + 1000*3600*24*28);
+            let value = d.toISOString().slice(0,10);
+            endDate.setAttribute('max', value);
         }
-    })
-
-    let value = d.toISOString().slice(0,10);
-    endDate.setAttribute('max', value);
-
     });
+});
